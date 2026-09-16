@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Find & Circle Sight Words Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Comic+Neue:wght@700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg-sky: #cbf3fd;
+    --bg-grass: #a3e635;
+    --panel-border: #f59e0b;
+    --blue: #2563eb;
+    --yellow: #eab308;
+    --brown: #854d0e;
+    --red: #dc2626;
+    --pink: #ec4899;
+    --green: #16a34a;
+  }
+
+  * {
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  body {
+    margin: 0;
+    padding: 16px;
+    background: linear-gradient(180deg, #dcfce7 0%, #bae6fd 60%, #86efac 100%);
+    font-family: 'Comic Neue', cursive, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .activity-card {
+    background: #ffffff;
+    width: 100%;
+    max-width: 760px;
+    border-radius: 28px;
+    box-shadow: 0 18px 38px rgba(0,0,0,0.18);
+    border: 6px solid #fde047;
+    padding: 24px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Wooden Header Banner */
+  .wood-banner {
+    background: linear-gradient(180deg, #e49759 0%, #b8621b 100%);
+    border: 4px solid #6b330e;
+    box-shadow: 0 5px 0 #451a03;
+    border-radius: 20px;
+    text-align: center;
+    padding: 10px 18px;
+    max-width: 480px;
+    margin: 0 auto 10px auto;
+  }
+
+  .wood-banner h1 {
+    margin: 0;
+    font-family: 'Fredoka One', cursive;
+    font-size: 38px;
+    letter-spacing: 1px;
+    background: linear-gradient(180deg, #ffffff 40%, #ffdfba 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    -webkit-text-stroke: 1.5px #6b21a8;
+    filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.3));
+  }
+
+  .instruction {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-bottom: 12px;
+  }
+
+  /* Level Navigation */
+  .level-bar {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .level-btn {
+    background: #f1f5f9;
+    border: 2px solid #94a3b8;
+    border-radius: 12px;
+    padding: 5px 14px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .level-btn.active {
+    background: #facc15;
+    border-color: #ca8a04;
+    transform: scale(1.06);
+  }
+
+  /* Main Workspace (Palette + Grid) */
+  .game-area {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    align-items: stretch;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  /* Side Word List & Crayons */
+  .crayon-panel {
+    flex: 1;
+    min-width: 200px;
+    background: #f8fafc;
+    border: 3px dashed #cbd5e1;
+    border-radius: 20px;
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 12px;
+  }
+
+  .crayon-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 14px;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.15s ease;
+  }
+
+  .crayon-row.selected {
+    border-color: #0284c7;
+    background: #e0f2fe;
+    transform: scale(1.04);
+  }
+
+  .word-label {
+    font-family: 'Fredoka One', cursive;
+    font-size: 26px;
+  }
+
+  /* SVG Crayon Mock */
+  .crayon-svg {
+    width: 65px;
+    height: 24px;
+  }
+
+  /* Word Search Grid */
+  .grid-container {
+    background: #ffffff;
+    border: 4px solid #38bdf8;
+    border-radius: 20px;
+    padding: 10px;
+    display: inline-block;
+    box-shadow: 0 6px 0 #0284c7;
+  }
+
+  .grid {
+    display: grid;
+    gap: 3px;
+    touch-action: manipulation;
+  }
+
+  .cell {
+    width: 38px;
+    height: 38px;
+    background: #f8fafc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Comic Neue', cursive;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e293b;
+    cursor: pointer;
+    transition: 0.1s;
+    border: 2.5px solid transparent;
+  }
+
+  .cell:hover {
+    background: #f1f5f9;
+  }
+
+  /* Active Crayon Circle Styles */
+  .cell.circled-blue   { border-color: var(--blue);   color: var(--blue);   background: #dbeafe; }
+  .cell.circled-yellow { border-color: var(--yellow); color: #854d0e;       background: #fef9c3; }
+  .cell.circled-brown  { border-color: var(--brown);  color: var(--brown);  background: #f5ebe6; }
+  .cell.circled-red    { border-color: var(--red);    color: var(--red);    background: #fee2e2; }
+  .cell.circled-pink   { border-color: var(--pink);   color: var(--pink);   background: #fce7f3; }
+  .cell.circled-green  { border-color: var(--green);  color: var(--green);  background: #dcfce7; }
+
+  /* Sentences Card */
+  .sentence-panel {
+    background: #fefce8;
+    border: 3px dashed #fde047;
+    border-radius: 22px;
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .sentence-panel h3 {
+    margin: 0 0 4px 0;
+    font-size: 17px;
+    color: #854d0e;
+    text-align: center;
+  }
+
+  .sentence-row {
+    font-size: 23px;
+    font-weight: bold;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .interactive-word {
+    padding: 2px 8px;
+    border-radius: 25px;
+    cursor: pointer;
+    border: 2.5px dashed transparent;
+    transition: transform 0.15s;
+  }
+
+  .interactive-word:hover {
+    border-color: #94a3b8;
+  }
+
+  .interactive-word.circled-blue   { border: 3px solid var(--blue);   background: #dbeafe; }
+  .interactive-word.circled-yellow { border: 3px solid var(--yellow); background: #fef9c3; }
+  .interactive-word.circled-brown  { border: 3px solid var(--brown);  background: #f5ebe6; }
+  .interactive-word.circled-red    { border: 3px solid var(--red);    background: #fee2e2; }
+  .interactive-word.circled-pink   { border: 3px solid var(--pink);   background: #fce7f3; }
+  .interactive-word.circled-green  { border: 3px solid var(--green);  background: #dcfce7; }
+
+  .row-pic {
+    font-size: 28px;
+    margin-left: 8px;
+  }
+
+  .status-msg {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #047857;
+    min-height: 24px;
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="activity-card">
+  <!-- Top Banner -->
+  <div class="wood-banner">
+    <h1>Find &amp; Circle</h1>
+  </div>
+  <div class="instruction">
+    Pick your colour crayon, find the sight words in the puzzle &amp; sentences, and circle them!
+  </div>
+
+  <!-- Pair Navigation -->
+  <div class="level-bar">
+    <button class="level-btn active" onclick="loadSet(0)">Set 1 (my, and, the)</button>
+    <button class="level-btn" onclick="loadSet(1)">Set 2 (like, to, you)</button>
+    <button class="level-btn" onclick="loadSet(2)">Set 3 (do, like, my)</button>
+  </div>
+
+  <!-- Game Area -->
+  <div class="game-area">
+    <!-- Crayon Selector -->
+    <div class="crayon-panel" id="crayons"></div>
+
+    <!-- Letter Grid -->
+    <div class="grid-container">
+      <div class="grid" id="letterGrid"></div>
+    </div>
+  </div>
+
+  <!-- Read & Circle Sentences -->
+  <div class="sentence-panel">
+    <h3>Now Read and Circle the Words in the Sentences:</h3>
+    <div id="sentenceContainer"></div>
+  </div>
+
+  <div class="status-msg" id="statusMsg"></div>
+</div>
+
+<script>
+  // Word rules with colour definitions
+  const SIGHT_WORDS_CONFIG = {
+    my:   { colorName: "blue",   hex: "#2563eb" },
+    the:  { colorName: "yellow", hex: "#eab308" },
+    to:   { colorName: "brown",  hex: "#854d0e" },
+    like: { colorName: "red",    hex: "#dc2626" },
+    you:  { colorName: "brown",  hex: "#854d0e" },
+    do:   { colorName: "pink",   hex: "#ec4899" },
+    and:  { colorName: "green",  hex: "#16a34a" }
+  };
+
+  // Sets of 3 words with sentences sourced from worksheet sheets
+  const SETS = [
+    {
+      words: ["my", "and", "the"],
+      sentences: [
+        { text: "my bag and my bottle .", emoji: "🎒🍼" },
+        { text: "the sun and the moon .", emoji: "☀️🌙" },
+        { text: "the cat and the rat .",  emoji: "🐱🐭" }
+      ],
+      // 8x8 sample search layout containing 'my', 'and', 'the'
+      grid: [
+        ['a','b','c','d','e','f','g','h'],
+        ['j','k','l','m','y','n','o','p'],
+        ['r','s','t','u','v','w','x','y'],
+        ['a','n','d','b','c','d','e','f'],
+        ['h','i','j','k','l','m','n','o'],
+        ['q','r','s','t','h','e','u','v'],
+        ['x','y','z','a','b','c','d','e'],
+        ['g','h','i','j','k','l','m','n']
+      ]
+    },
+    {
+      words: ["like", "to", "you"],
+      sentences: [
+        { text: "Do you like to skate ?", emoji: "🛹" },
+        { text: "I like to read .",       emoji: "📖" },
+        { text: "Do you like to slide ?", emoji: "🛝" }
+      ],
+      grid: [
+        ['l','i','k','e','p','q','r','s'],
+        ['a','b','c','d','t','o','e','f'],
+        ['g','h','y','o','u','i','j','k'],
+        ['m','n','o','p','q','r','s','t'],
+        ['t','o','u','v','w','x','y','z'],
+        ['a','b','l','i','k','e','c','d'],
+        ['e','f','g','h','y','o','u','i'],
+        ['j','k','l','m','n','o','p','q']
+      ]
+    },
+    {
+      words: ["do", "like", "my"],
+      sentences: [
+        { text: "I like my friend .",  emoji: "🧑‍🤝‍🧑" },
+        { text: "I like my dog .",     emoji: "🐕" },
+        { text: "Do you like my cat ?",emoji: "🐈" }
+      ],
+      grid: [
+        ['d','o','a','b','c','d','e','f'],
+        ['g','h','l','i','k','e','i','j'],
+        ['k','l','m','n','o','p','q','r'],
+        ['s','t','m','y','u','v','w','x'],
+        ['d','o','y','z','a','b','c','d'],
+        ['e','f','g','h','l','i','k','e'],
+        ['i','j','m','y','k','l','m','n'],
+        ['o','p','q','r','s','t','u','v']
+      ]
+    }
+  ];
+
+  let currentSetIndex = 0;
+  let activeColor = "";
+
+  function getCrayonSVG(hexColor) {
+    return `
+      <svg class="crayon-svg" viewBox="0 0 100 35" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="5,17 25,5 25,30" fill="${hexColor}" />
+        <rect x="25" y="5" width="60" height="25" rx="3" fill="${hexColor}" />
+        <rect x="38" y="5" width="28" height="25" fill="#f8fafc" opacity="0.4" />
+        <rect x="85" y="8" width="10" height="19" rx="2" fill="#cbd5e1" />
+      </svg>
+    `;
+  }
+
+  function loadSet(index) {
+    currentSetIndex = index;
+    document.querySelectorAll(".level-btn").forEach((btn, i) => {
+      btn.classList.toggle("active", i === index);
+    });
+
+    const set = SETS[index];
+    activeColor = SIGHT_WORDS_CONFIG[set.words[0]].colorName;
+
+    renderCrayons(set.words);
+    renderGrid(set.grid);
+    renderSentences(set.sentences);
+    document.getElementById("statusMsg").innerText = "";
+  }
+
+  function renderCrayons(wordList) {
+    const crayonContainer = document.getElementById("crayons");
+    crayonContainer.innerHTML = "";
+
+    wordList.forEach((word) => {
+      const cfg = SIGHT_WORDS_CONFIG[word];
+      const row = document.createElement("div");
+      row.className = `crayon-row ${activeColor === cfg.colorName ? "selected" : ""}`;
+      row.onclick = () => {
+        activeColor = cfg.colorName;
+        document.querySelectorAll(".crayon-row").forEach(r => r.classList.remove("selected"));
+        row.classList.add("selected");
+      };
+
+      row.innerHTML = `
+        <span class="word-label" style="color: ${cfg.hex}">${word}</span>
+        ${getCrayonSVG(cfg.hex)}
+      `;
+      crayonContainer.appendChild(row);
+    });
+  }
+
+  function renderGrid(gridMatrix) {
+    const gridElem = document.getElementById("letterGrid");
+    gridElem.style.gridTemplateColumns = `repeat(${gridMatrix[0].length}, 38px)`;
+    gridElem.innerHTML = "";
+
+    gridMatrix.forEach((row) => {
+      row.forEach((letter) => {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.innerText = letter;
+
+        cell.onclick = () => {
+          // Toggle circle color with active crayon
+          const currentCircleClass = `circled-${activeColor}`;
+          if (cell.classList.contains(currentCircleClass)) {
+            cell.className = "cell";
+          } else {
+            cell.className = `cell ${currentCircleClass}`;
+          }
+        };
+
+        gridElem.appendChild(cell);
+      });
+    });
+  }
+
+  function renderSentences(sentences) {
+    const container = document.getElementById("sentenceContainer");
+    container.innerHTML = "";
+
+    sentences.forEach((s) => {
+      const row = document.createElement("div");
+      row.className = "sentence-row";
+
+      const tokens = s.text.split(" ");
+      tokens.forEach((token) => {
+        if (!token) return;
+        const span = document.createElement("span");
+        span.className = "interactive-word";
+        span.innerText = token;
+
+        // Toggle circle on click
+        span.onclick = () => {
+          const currentCircleClass = `circled-${activeColor}`;
+          if (span.classList.contains(currentCircleClass)) {
+            span.classList.remove(currentCircleClass);
+          } else {
+            // Remove previous circle colors
+            span.className = `interactive-word ${currentCircleClass}`;
+          }
+        };
+
+        row.appendChild(span);
+      });
+
+      const emoji = document.createElement("span");
+      emoji.className = "row-pic";
+      emoji.innerText = s.emoji;
+      row.appendChild(emoji);
+
+      container.appendChild(row);
+    });
+  }
+
+  // Initialize
+  loadSet(0);
+</script>
+</body>
+</html>
