@@ -1,412 +1,1269 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Find & Circle Sight Words Game</title>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Comic+Neue:wght@700&display=swap" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-<style>
- :root {
- --blue: #2563eb;
- --yellow: #eab308;
- --brown: #854d0e;
- --red: #dc2626;
- --pink: #ec4899;
- --green: #16a34a;
- }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find & Circle - Sight Words Fun</title>
+  <!-- Google Fonts for friendly, playful typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            fredoka: ['"Fredoka"', 'sans-serif'],
+            quicksand: ['"Quicksand"', 'sans-serif'],
+          },
+          colors: {
+            pencilBlue: '#2563EB',
+            pencilYellow: '#EAB308',
+            pencilBrown: '#8B5A2B',
+            pencilRed: '#DC2626',
+            pencilPink: '#EC4899',
+            pencilGreen: '#16A34A',
+          },
+          boxShadow: {
+            'storybook': '0 8px 0px rgba(0, 0, 0, 0.12), 0 15px 25px rgba(0,0,0,0.1)',
+            'wooden': '0 6px 0px #b45309, 0 10px 20px rgba(0,0,0,0.15)',
+            'card': '0 8px 18px rgba(37, 99, 235, 0.08), 0 2px 6px rgba(0,0,0,0.04)',
+          }
+        }
+      }
+    }
+  </script>
 
- * {
- box-sizing: border-box;
- user-select: none;
- -webkit-user-select: none;
- }
+  <style>
+    body {
+      font-family: 'Fredoka', cursive, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
 
- body {
- margin: 0;
- padding: 16px;
- background: linear-gradient(180deg, #dcfce7 0%, #bae6fd 60%, #86efac 100%);
- font-family: 'Comic Neue', cursive, sans-serif;
- display: flex;
- justify-content: center;
- align-items: center;
- min-height: 100vh;
- }
+    .cloud {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 9999px;
+      filter: blur(1px);
+      animation: floatCloud 28s linear infinite;
+    }
 
- .activity-card {
- background: #ffffff;
- width: 100%;
- max-width: 860px;
- border-radius: 28px;
- box-shadow: 0 18px 38px rgba(0,0,0,0.18);
- border: 6px solid #fde047;
- padding: 24px 20px;
- position: relative;
- }
+    @keyframes floatCloud {
+      0% { transform: translateX(-120%); }
+      100% { transform: translateX(120vw); }
+    }
 
- /* Wooden Header Banner */
- .wood-banner {
- background: linear-gradient(180deg, #e49759 0%, #b8621b 100%);
- border: 4px solid #6b330e;
- box-shadow: 0 5px 0 #451a03;
- border-radius: 20px;
- text-align: center;
- padding: 10px 18px;
- max-width: 480px;
- margin: 0 auto 10px auto;
- }
+    .sun-glow {
+      animation: pulseSun 4s ease-in-out infinite alternate;
+    }
+    @keyframes pulseSun {
+      0% { transform: scale(1) rotate(0deg); }
+      100% { transform: scale(1.06) rotate(6deg); }
+    }
 
- .wood-banner h1 {
- margin: 0;
- font-family: 'Fredoka One', cursive;
- font-size: 38px;
- letter-spacing: 1px;
- background: linear-gradient(180deg, #ffffff 40%, #ffdfba 100%);
- -webkit-background-clip: text;
- -webkit-text-fill-color: transparent;
- -webkit-text-stroke: 1.5px #6b21a8;
- filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.3));
- }
+    /* Pencil 3D illusion badge */
+    .pencil-body {
+      position: relative;
+      height: 24px;
+      border-radius: 4px 0 0 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pencil-tip {
+      width: 0;
+      height: 0;
+      border-top: 12px solid transparent;
+      border-bottom: 12px solid transparent;
+      border-left: 14px solid #fcd34d; /* wood color */
+      position: relative;
+    }
+    .pencil-lead {
+      position: absolute;
+      left: -14px;
+      top: -4px;
+      width: 0;
+      height: 0;
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+    }
 
- .instruction {
- text-align: center;
- font-size: 17px;
- font-weight: 700;
- color: #1e3a8a;
- margin-bottom: 14px;
- }
+    /* Grid selection styling */
+    .grid-cell {
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s;
+    }
+    .grid-cell:active {
+      transform: scale(0.92);
+    }
+    .grid-cell.selected-temp {
+      transform: scale(1.08);
+      z-index: 10;
+    }
 
- /* Sight Word Selector Panel */
- .crayon-panel {
- background: #f8fafc;
- border: 3px dashed #cbd5e1;
- border-radius: 20px;
- padding: 12px 16px;
- display: flex;
- flex-wrap: wrap;
- justify-content: center;
- gap: 12px;
- margin-bottom: 18px;
- }
+    /* Rectangular Box / Pill combine effect for found sight words */
+    .word-box-pill {
+      position: relative;
+      display: inline-block;
+      border-radius: 9999px;
+      padding: 2px 10px;
+      margin: 0 3px;
+      font-weight: 700;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+      transition: all 0.25s ease;
+    }
 
- .crayon-row {
- display: flex;
- align-items: center;
- gap: 8px;
- padding: 6px 14px;
- border-radius: 14px;
- cursor: pointer;
- border: 3px solid transparent;
- background: #ffffff;
- transition: all 0.15s ease;
- }
+    /* Sentence word clickable state */
+    .sentence-word {
+      transition: all 0.2s ease;
+      cursor: pointer;
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 9999px;
+      border: 2px solid transparent;
+    }
+    .sentence-word:hover {
+      background-color: rgba(254, 240, 138, 0.4);
+      transform: translateY(-1px);
+    }
 
- .crayon-row.selected {
- border-color: #0284c7;
- background: #e0f2fe;
- transform: scale(1.05);
- }
+    /* Karaoke reading highlight */
+    .karaoke-active {
+      background-color: #fde047 !important;
+      color: #000 !important;
+      transform: scale(1.18) !important;
+      box-shadow: 0 0 12px rgba(250, 204, 21, 0.8) !important;
+      z-index: 20;
+    }
 
- .word-label {
- font-family: 'Fredoka One', cursive;
- font-size: 24px;
- }
+    /* Wooden plank texture */
+    .wooden-plank {
+      background: linear-gradient(180deg, #FDE68A 0%, #F59E0B 25%, #D97706 70%, #B45309 100%);
+      border: 4px solid #78350F;
+      box-shadow: 0 8px 0px #451A03, 0 12px 20px rgba(0,0,0,0.25);
+    }
 
- .c-audio-btn {
- background: none;
- border: none;
- cursor: pointer;
- font-size: 18px;
- padding: 2px 4px;
- display: flex;
- align-items: center;
- }
+    /* Custom scrollbar for sentences */
+    .custom-scroll::-webkit-scrollbar {
+      width: 8px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #FEF3C7;
+      border-radius: 10px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #F59E0B;
+      border-radius: 10px;
+    }
 
- .crayon-svg {
- width: 45px;
- height: 20px;
- }
-
- /* Sentences Scrollable Container */
- .sentence-panel {
- background: #fefce8;
- border: 3px dashed #fde047;
- border-radius: 22px;
- padding: 18px 20px;
- display: flex;
- flex-direction: column;
- gap: 14px;
- max-height: 480px;
- overflow-y: auto;
- }
-
- .sentence-row {
- font-size: 24px;
- font-weight: bold;
- color: #1e293b;
- display: flex;
- align-items: center;
- gap: 10px;
- flex-wrap: wrap;
- padding-bottom: 10px;
- border-bottom: 1px dashed #cbd5e1;
- }
-
- /* Speaker Button to Read Entire Sentence */
- .btn-read-sentence {
- background: #38bdf8;
- border: 2px solid #0284c7;
- border-radius: 50%;
- width: 36px;
- height: 36px;
- display: flex;
- align-items: center;
- justify-content: center;
- cursor: pointer;
- font-size: 16px;
- box-shadow: 0 2px 0 #0284c7;
- transition: transform 0.1s;
- flex-shrink: 0;
- }
-
- .btn-read-sentence:active {
- transform: scale(0.92);
- }
-
- /* Rectangular Box Effect for Found Sight Words */
- .interactive-word {
- padding: 2px 8px;
- border-radius: 6px;
- cursor: pointer;
- border: 3px dashed transparent;
- transition: all 0.15s ease;
- }
-
- .interactive-word:hover {
- border-color: #94a3b8;
- }
-
- .interactive-word.boxed-blue   { border: 3px solid var(--blue);   background: #dbeafe; }
- .interactive-word.boxed-yellow { border: 3px solid var(--yellow); background: #fef9c3; }
- .interactive-word.boxed-brown  { border: 3px solid var(--brown);  background: #f5ebe6; }
- .interactive-word.boxed-red    { border: 3px solid var(--red);    background: #fee2e2; }
- .interactive-word.boxed-pink   { border: 3px solid var(--pink);   background: #fce7f3; }
- .interactive-word.boxed-green  { border: 3px solid var(--green);  background: #dcfce7; }
-
- /* Floating reward pop animation */
- .reward-pop {
- position: fixed;
- font-family: 'Fredoka One', cursive;
- font-size: 28px;
- color: #e11d48;
- text-shadow: 2px 2px #ffe4e6;
- pointer-events: none;
- animation: floatUp 0.8s ease-out forwards;
- z-index: 9999;
- }
-
- @keyframes floatUp {
- 0% { opacity: 1; transform: translate(-50%, 0) scale(0.8); }
- 100% { opacity: 0; transform: translate(-50%, -60px) scale(1.3); }
- }
-</style>
+    /* Pulsing reward banner */
+    @keyframes bouncePraise {
+      0%, 100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
+      20%, 80% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+    }
+    .praise-banner {
+      animation: bouncePraise 1.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+  </style>
 </head>
-<body>
+<body class="min-h-screen bg-gradient-to-b from-[#7dd3fc] via-[#bae6fd] to-[#86efac] overflow-x-hidden text-slate-800 relative pb-12">
 
-<div class="activity-card">
- <div class="wood-banner">
- <h1>Find &amp; Box</h1>
- </div>
- <div class="instruction">
- Pick a sight word crayon, listen to its pronunciation, and click words in sentences to box them!
- </div>
+  <!-- Animated Background Elements -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="cloud w-44 h-14 top-8 -left-32 opacity-75"></div>
+    <div class="cloud w-64 h-16 top-20 -left-60 opacity-80" style="animation-duration: 36s; animation-delay: 5s;"></div>
+    <div class="cloud w-36 h-12 top-36 -left-20 opacity-70" style="animation-duration: 42s; animation-delay: 14s;"></div>
+    
+    <!-- Cartoon Sun with Face in Top Left -->
+    <div class="absolute top-2 left-3 sm:top-5 sm:left-6 flex items-center justify-center sun-glow z-0">
+      <svg class="w-20 h-20 sm:w-28 sm:h-28 drop-shadow-lg" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="28" fill="#FBBF24" stroke="#F59E0B" stroke-width="3"/>
+        <!-- Sun rays -->
+        <g stroke="#F59E0B" stroke-width="4" stroke-linecap="round">
+          <line x1="50" y1="12" x2="50" y2="4" />
+          <line x1="50" y1="88" x2="50" y2="96" />
+          <line x1="12" y1="50" x2="4" y2="50" />
+          <line x1="88" y1="50" x2="96" y2="50" />
+          <line x1="23" y1="23" x2="17" y2="17" />
+          <line x1="77" y1="77" x2="83" y2="83" />
+          <line x1="23" y1="77" x2="17" y2="83" />
+          <line x1="77" y1="23" x2="83" y2="17" />
+        </g>
+        <!-- Rosy Cheeks -->
+        <circle cx="36" cy="55" r="4" fill="#F87171" opacity="0.6"/>
+        <circle cx="64" cy="55" r="4" fill="#F87171" opacity="0.6"/>
+        <!-- Eyes -->
+        <circle cx="41" cy="46" r="3.2" fill="#451A03"/>
+        <circle cx="42" cy="45" r="1" fill="#FFFFFF"/>
+        <circle cx="59" cy="46" r="3.2" fill="#451A03"/>
+        <circle cx="60" cy="45" r="1" fill="#FFFFFF"/>
+        <!-- Smile -->
+        <path d="M 43 56 Q 50 64 57 56" fill="transparent" stroke="#451A03" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+    </div>
 
- <!-- Sight Word Selector & Audio Assistance -->
- <div class="crayon-panel" id="crayons"></div>
+    <!-- Friendly Little Singing Bird on Top Right -->
+    <div class="absolute top-4 right-4 sm:top-6 sm:right-10 flex items-center gap-1 z-0">
+      <span class="text-xl animate-bounce text-pink-500 font-bold">♪</span>
+      <svg class="w-14 h-14 sm:w-16 sm:h-16 drop-shadow-md transform -scale-x-100" viewBox="0 0 100 100">
+        <!-- Bird body -->
+        <ellipse cx="50" cy="55" rx="28" ry="24" fill="#A855F7"/>
+        <circle cx="65" cy="40" r="18" fill="#C084FC"/>
+        <!-- Beak -->
+        <polygon points="80,40 95,44 80,48" fill="#F59E0B"/>
+        <!-- Eye -->
+        <circle cx="70" cy="36" r="3" fill="#1E1B4B"/>
+        <circle cx="71" cy="35" r="1" fill="#FFF"/>
+        <!-- Wing -->
+        <ellipse cx="40" cy="58" rx="16" ry="10" fill="#9333EA" transform="rotate(-15 40 58)"/>
+        <!-- Belly -->
+        <ellipse cx="58" cy="62" rx="14" ry="12" fill="#F3E8FF"/>
+      </svg>
+      <span class="text-sm animate-pulse text-amber-500 font-bold">♫</span>
+    </div>
+  </div>
 
- <!-- Sentences Container (All 22 Exact Sentences) -->
- <div class="sentence-panel" id="sentenceContainer"></div>
-</div>
+  <!-- Top Navigation & Header -->
+  <header class="relative z-10 pt-4 pb-3 px-4 max-w-5xl mx-auto flex flex-col items-center text-center">
+    <!-- Wooden Sign Header -->
+    <div class="wooden-plank rounded-3xl px-8 py-3.5 max-w-lg w-full transform hover:rotate-1 transition-transform">
+      <h1 class="text-3xl sm:text-5xl font-black text-white tracking-wide drop-shadow-[0_3px_2px_rgba(0,0,0,0.4)] flex items-center justify-center gap-3">
+        <span class="text-amber-200">★</span>
+        <span class="bg-clip-text text-transparent bg-gradient-to-b from-white to-amber-100">Find & Circle</span>
+        <span class="text-amber-200">★</span>
+      </h1>
+    </div>
 
-<script>
- const SIGHT_WORDS_CONFIG = {
- like: { colorName: "red", hex: "#dc2626" },
- and:  { colorName: "green", hex: "#16a34a" },
- do:   { colorName: "pink", hex: "#ec4899" },
- you:  { colorName: "brown", hex: "#854d0e" },
- to:   { colorName: "yellow", hex: "#eab308" },
- my:   { colorName: "blue", hex: "#2563eb" }
- };
+    <!-- Instruction Subtitle matching sheet -->
+    <p class="mt-3 text-base sm:text-lg font-bold text-slate-800 bg-white/90 backdrop-blur px-5 py-1.5 rounded-full border-2 border-amber-300 shadow-sm">
+      Find each word in the word search and circle it with the colour shown! ✏️✨
+    </p>
 
- // Exactly all 22 sentences sourced from the PDF, unnumbered and unedited
- const SENTENCES = [
- "I like to skate.",
- "I like to slide.",
- "I like to dance.",
- "I like to read.",
- "I like to sleep.",
- "My bag and my bottle.",
- "The sun and the moon. C",
- "My box and my spoon.",
- "The moon and the stars.",
- "My school and my teacher.",
- "The cat and the rat.",
- "The fox and the grapes.",
- "Do you like to skate?",
- "Do you like to read?",
- "Do you like to run?",
- "Do you like to swing?",
- "Do you like to slide?",
- "I like my friend.",
- "I like my dog.",
- "I like my school.",
- "I like my teacher.",
- "I like my mom."
- ];
+    <!-- Quick Audio Mute & Sound Feedback Controls -->
+    <div class="flex items-center gap-3 mt-2">
+      <button id="soundFxBtn" class="bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs sm:text-sm font-bold px-3 py-1 rounded-full border border-amber-400 flex items-center gap-1 shadow-sm transition">
+        <span>🔊 Sound Effects: <strong id="fxStatus">ON</strong></span>
+      </button>
+      <button id="resetAllBtn" class="bg-rose-100 hover:bg-rose-200 text-rose-800 text-xs sm:text-sm font-bold px-3 py-1 rounded-full border border-rose-300 flex items-center gap-1 shadow-sm transition">
+        <span>🔄 Reset Progress</span>
+      </button>
+    </div>
+  </header>
 
- let activeWord = "like";
- let activeColor = SIGHT_WORDS_CONFIG[activeWord].colorName;
+  <!-- Main Interactive Area -->
+  <main class="relative z-10 max-w-6xl mx-auto px-3 sm:px-6 grid grid-cols-1 lg:grid-cols-12 gap-6 mt-3 items-start">
+    
+    <!-- LEFT COLUMN: Sight Word Selector with Color Pencils (lg:col-span-4) -->
+    <section class="lg:col-span-4 bg-white/95 backdrop-blur-md rounded-3xl p-5 border-4 border-amber-200 shadow-storybook flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b-2 border-amber-100 pb-2">
+        <h2 class="text-xl font-black text-amber-900 flex items-center gap-2">
+          <span>🎨</span> Word Palette
+        </h2>
+        <span class="text-xs font-bold text-amber-800 bg-amber-100 px-2.5 py-1 rounded-full">
+          Select & Speak
+        </span>
+      </div>
 
- function speakText(text) {
- if ('speechSynthesis' in window) {
- window.speechSynthesis.cancel();
- const utterance = new SpeechSynthesisUtterance(text);
- utterance.rate = 0.85;
- utterance.pitch = 1.1;
- window.speechSynthesis.speak(utterance);
- }
- }
+      <p class="text-xs text-slate-600 font-medium -mt-1">
+        Tap a word to hear it pronounced and equip its colored crayon to find words!
+      </p>
 
- function playRewardChime() {
- try {
- const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
- const osc = audioCtx.createOscillator();
- const gain = audioCtx.createGain();
- osc.type = 'triangle';
- osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
- osc.frequency.exponentialRampToValueAtTime(783.99, audioCtx.currentTime + 0.15); // G5
- gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
- gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
- osc.connect(gain);
- gain.connect(audioCtx.destination);
- osc.start();
- osc.stop(audioCtx.currentTime + 0.25);
- } catch (e) {
- // Fallback if AudioContext is blocked
- }
- }
+      <!-- Sight Words List -->
+      <div id="wordListContainer" class="flex flex-col gap-2.5">
+        <!-- Injected via JavaScript with precise colors & pencil badges -->
+      </div>
 
- function triggerReward(event) {
- playRewardChime();
+      <!-- Cute Bear & Bunny illustration banner below pencils -->
+      <div class="mt-2 pt-3 border-t-2 border-amber-100 bg-amber-50/70 rounded-2xl p-3 flex items-center gap-3">
+        <div class="text-3xl">🐻🐰</div>
+        <div class="text-xs font-bold text-amber-900 leading-snug">
+          <span class="block text-amber-700 font-extrabold uppercase text-[10px] tracking-wider">Reading Buddies</span>
+          "Can you spot all the sight words in the puzzle and story?"
+        </div>
+      </div>
+    </section>
 
- // Confetti canvas effect on correct box completion
- if (typeof confetti === 'function') {
- const rect = event.target.getBoundingClientRect();
- const x = (rect.left + rect.width / 2) / window.innerWidth;
- const y = (rect.top + rect.height / 2) / window.innerHeight;
+    <!-- CENTER COLUMN: Word Search Grid (lg:col-span-8) -->
+    <section class="lg:col-span-8 flex flex-col gap-6">
+      
+      <!-- Word Search Card matching Reference Image -->
+      <div class="bg-white/95 backdrop-blur-md rounded-3xl p-5 sm:p-6 border-4 border-sky-200 shadow-storybook relative overflow-hidden">
+        <!-- Cute top accent -->
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3 pb-2 border-b-2 border-sky-100">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">🔍</span>
+            <h2 class="text-xl sm:text-2xl font-black text-sky-900">Word Search Grid</h2>
+          </div>
+          <!-- Active word indicator -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-600">Active Pencil:</span>
+            <div id="activePencilIndicator" class="flex items-center gap-2 px-3 py-1 rounded-full font-bold text-sm text-white shadow-sm" style="background-color: #2563EB;">
+              <span id="activeWordName">my</span>
+              <button id="pronounceActiveWord" class="hover:scale-125 transition-transform" title="Listen again">🔊</button>
+            </div>
+          </div>
+        </div>
 
- confetti({
- particleCount: 35,
- spread: 60,
- startVelocity: 18,
- origin: { x, y }
- });
- }
+        <div class="text-xs text-slate-500 mb-3 flex items-center justify-between">
+          <span>💡 <em>Drag or tap letters in a line to circle words with the active color!</em></span>
+          <span id="gridProgressText" class="font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200">0 / 7 Found</span>
+        </div>
 
- // Floating praise text
- const praise = ["Great Job!", "Super!", "Awesome!", "Star!", "Nice!"][Math.floor(Math.random() * 5)];
- const pop = document.createElement("div");
- pop.className = "reward-pop";
- pop.innerText = praise;
- pop.style.left = `${event.clientX}px`;
- pop.style.top = `${event.clientY}px`;
- document.body.appendChild(pop);
- setTimeout(() => pop.remove(), 800);
- }
+        <!-- Word Search Matrix (10 x 9 Grid with letters matching image layout) -->
+        <div class="flex justify-center p-2 sm:p-4 bg-sky-50/60 rounded-2xl border-2 border-sky-100 overflow-x-auto">
+          <div 
+            id="wordGrid" 
+            class="grid grid-cols-9 gap-1.5 sm:gap-2 select-none touch-none max-w-full"
+            style="grid-template-columns: repeat(9, minmax(30px, 48px));"
+          >
+            <!-- Generated dynamically via JavaScript -->
+          </div>
+        </div>
 
- function getCrayonSVG(hexColor) {
- return `
- <svg class="crayon-svg" viewBox="0 0 100 35" fill="none" xmlns="http://www.w3.org/2000/svg">
- <polygon points="5,17 25,5 25,30" fill="${hexColor}" />
- <rect x="25" y="5" width="60" height="25" rx="3" fill="${hexColor}" />
- <rect x="38" y="5" width="28" height="25" fill="#f8fafc" opacity="0.4" />
- <rect x="85" y="8" width="10" height="19" rx="2" fill="#cbd5e1" />
- </svg>
- `;
- }
+        <!-- Grid Action Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mt-4 pt-2">
+          <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+            <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+            <span>Rectangular box combines adjacent letters cleanly</span>
+          </div>
+          <button id="hintBtn" class="bg-amber-100 hover:bg-amber-200 active:scale-95 text-amber-900 text-xs sm:text-sm font-extrabold px-3 py-1.5 rounded-xl border border-amber-300 shadow-sm flex items-center gap-1.5 transition">
+            <span>💡 Need a Hint?</span>
+          </button>
+        </div>
+      </div>
 
- function renderCrayons() {
- const crayonContainer = document.getElementById("crayons");
- crayonContainer.innerHTML = "";
+    </section>
 
- Object.keys(SIGHT_WORDS_CONFIG).forEach((word) => {
- const cfg = SIGHT_WORDS_CONFIG[word];
- const row = document.createElement("div");
- row.className = `crayon-row ${activeWord === word ? "selected" : ""}`;
- row.onclick = () => {
- activeWord = word;
- activeColor = cfg.colorName;
- document.querySelectorAll(".crayon-row").forEach(r => r.classList.remove("selected"));
- row.classList.add("selected");
- };
+    <!-- BOTTOM / WIDE SECTION: Story Time Sentences (All 22 Sentences) -->
+    <section class="lg:col-span-12 bg-[#FFFBEB] rounded-3xl p-5 sm:p-7 border-4 border-dashed border-amber-400 shadow-storybook relative">
+      
+      <!-- Story Time Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-amber-200 pb-4 mb-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-3xl">📖</span>
+            <h2 class="text-2xl sm:text-3xl font-black text-amber-950">Story Time Sentences</h2>
+            <span class="bg-amber-200 text-amber-900 text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+              22 Sentences
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm font-semibold text-amber-800 mt-1">
+            Read aloud or click any sight word to circle it with its signature pencil color!
+          </p>
+        </div>
 
- row.innerHTML = `
- <span class="word-label" style="color: ${cfg.hex}">${word}</span>
- ${getCrayonSVG(cfg.hex)}
- <button class="c-audio-btn" title="Pronounce ${word}" onclick="event.stopPropagation(); speakText('${word}')">🔊</button>
- `;
- crayonContainer.appendChild(row);
- });
- }
+        <!-- Filter Sentences by Sight Word Tabs -->
+        <div class="flex items-center flex-wrap gap-1.5">
+          <span class="text-xs font-extrabold text-amber-900 mr-1">Filter:</span>
+          <button data-filter="all" class="filter-tab px-3 py-1 rounded-full text-xs font-bold transition bg-amber-600 text-white shadow-sm border border-amber-600">
+            All (22)
+          </button>
+          <button data-filter="my" class="filter-tab px-2.5 py-1 rounded-full text-xs font-bold transition bg-white text-blue-700 border border-blue-400 hover:bg-blue-50">
+            my
+          </button>
+          <button data-filter="the" class="filter-tab px-2.5 py-1 rounded-full text-xs font-bold transition bg-white text-yellow-700 border border-yellow-400 hover:bg-yellow-50">
+            the
+          </button>
+          <button data-filter="to" class="filter-tab px-2.5 py-1 rounded-full text-xs font-bold transition bg-white text-amber-800 border border-amber-700 hover:bg-amber-50">
+            to
+          </button>
+          <button data-filter="like" class="filter-tab px-2.5 py-1 rounded-full text-xs font-bold transition bg-white text-red-600 border border-red-400 hover:bg-red-50">
+            like
+          </button>
+          <button data-filter="you" class="filter-tab px-2.5 py-1 rounded-full text-xs font-bold transition bg-white text-amber-800 border border-amber-700 hover:bg-amber-50">
+            you
+          </button>
+          <button data-filter="do" class="filter-tab px-2.5 py-1 rounded-full text-xs font-bold transition bg-white text-pink-600 border border-pink-400 hover:bg-pink-50">
+            do
+          </button>
+          <button data-filter="and" class="filter-tab px-2.5 py-1 rounded-full text-xs font-bold transition bg-white text-green-700 border border-green-500 hover:bg-green-50">
+            and
+          </button>
+        </div>
+      </div>
 
- function renderSentences() {
- const container = document.getElementById("sentenceContainer");
- container.innerHTML = "";
+      <!-- Quick Actions for Sentences -->
+      <div class="flex items-center justify-between mb-3 text-xs">
+        <div class="text-amber-800 font-medium">
+          Showing <span id="sentenceCountBadge" class="font-bold">22</span> matching sentences
+        </div>
+        <button id="circleAllMatchingBtn" class="text-xs font-bold text-amber-900 hover:text-amber-950 bg-amber-200/80 hover:bg-amber-300 px-3 py-1 rounded-lg transition border border-amber-300">
+          ✨ Auto-Circle All Matching Words
+        </button>
+      </div>
 
- SENTENCES.forEach((sentenceText) => {
- const row = document.createElement("div");
- row.className = "sentence-row";
+      <!-- Sentences Container -->
+      <div id="sentencesList" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[580px] overflow-y-auto pr-2 custom-scroll">
+        <!-- Dynamically rendered via JS -->
+      </div>
+    </section>
 
- // Read Entire Sentence Speaker Button
- const speakBtn = document.createElement("button");
- speakBtn.className = "btn-read-sentence";
- speakBtn.title = "Read Entire Sentence";
- speakBtn.innerHTML = "🔊";
- speakBtn.onclick = () => speakText(sentenceText);
- row.appendChild(speakBtn);
+  </main>
 
- // Sentence words splitting
- const tokens = sentenceText.split(" ");
- tokens.forEach((token) => {
- if (!token) return;
- const span = document.createElement("span");
- span.className = "interactive-word";
- span.innerText = token;
+  <!-- Celebration Banner Overlay (Floats and disappears with sound) -->
+  <div id="praiseBanner" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none hidden">
+    <div class="bg-gradient-to-r from-yellow-400 via-amber-500 to-rose-500 text-white font-black text-2xl sm:text-4xl px-8 py-4 rounded-3xl shadow-2xl border-4 border-white text-center flex flex-col items-center">
+      <span class="text-5xl mb-1">⭐ 🎉 ⭐</span>
+      <span id="praiseText">Super Job!</span>
+      <span id="praiseSubtext" class="text-sm sm:text-lg font-bold text-yellow-100 mt-1">You found "my"!</span>
+    </div>
+  </div>
 
- span.onclick = (e) => {
- const currentBoxClass = `boxed-${activeColor}`;
- if (span.classList.contains(currentBoxClass)) {
- span.classList.remove(currentBoxClass);
- } else {
- span.className = `interactive-word ${currentBoxClass}`;
- 
- // Check if selected word matches the active target word
- const cleanWord = token.replace(/[^a-zA-Z]/g, "").toLowerCase();
- if (cleanWord === activeWord.toLowerCase()) {
- triggerReward(e);
- }
- }
- };
+  <!-- Tone & Web Audio Sound Engine -->
+  <script>
+    // Web Audio API Sound Effects (no external audio assets required)
+    const AudioEngine = {
+      ctx: null,
+      enabled: true,
 
- row.appendChild(span);
- });
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
 
- container.appendChild(row);
- });
- }
+      playClick() {
+        if (!this.enabled) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.08);
+      },
 
- renderCrayons();
- renderSentences();
-</script>
+      playWordSuccess() {
+        if (!this.enabled) return;
+        this.init();
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, index) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + (index * 0.07));
+          gain.gain.setValueAtTime(0.25, this.ctx.currentTime + (index * 0.07));
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + (index * 0.07) + 0.25);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + (index * 0.07));
+          osc.stop(this.ctx.currentTime + (index * 0.07) + 0.25);
+        });
+      },
+
+      playCheerFanfare() {
+        if (!this.enabled) return;
+        this.init();
+        const notes = [440, 554.37, 659.25, 880, 1108.73];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.09);
+          gain.gain.setValueAtTime(0.3, this.ctx.currentTime + idx * 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.09 + 0.4);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + idx * 0.09);
+          osc.stop(this.ctx.currentTime + idx * 0.09 + 0.4);
+        });
+      }
+    };
+
+    // Speech Pronunciation Engine using Web Speech Synthesis
+    const SpeechEngine = {
+      speak(text, onWordCallback, onEndCallback) {
+        if (!('speechSynthesis' in window)) {
+          if (onEndCallback) onEndCallback();
+          return;
+        }
+
+        window.speechSynthesis.cancel(); // Stop any pending speech
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.88; // friendly kid-paced pace
+        utterance.pitch = 1.15; // slightly cheerful tone
+        utterance.lang = 'en-US';
+
+        if (onWordCallback) {
+          utterance.onboundary = (event) => {
+            if (event.name === 'word') {
+              onWordCallback(event.charIndex);
+            }
+          };
+        }
+
+        utterance.onend = () => {
+          if (onEndCallback) onEndCallback();
+        };
+
+        utterance.onerror = () => {
+          if (onEndCallback) onEndCallback();
+        };
+
+        window.speechSynthesis.speak(utterance);
+      }
+    };
+  </script>
+
+  <script>
+    // Sight Words with precise colors specified in requirements:
+    // "my" in blue
+    // "the" in yellow
+    // "to" in brown
+    // "like" in red
+    // "you" in brown
+    // "do" in pink
+    // "and" in green
+    const SIGHT_WORDS = [
+      { id: 'my', word: 'my', color: '#2563EB', textColor: '#ffffff', bgPill: '#DBEAFE', borderColor: '#2563EB', label: 'Blue' },
+      { id: 'the', word: 'the', color: '#EAB308', textColor: '#422006', bgPill: '#FEF9C3', borderColor: '#EAB308', label: 'Yellow' },
+      { id: 'to', word: 'to', color: '#8B5A2B', textColor: '#ffffff', bgPill: '#F5EBE1', borderColor: '#8B5A2B', label: 'Brown' },
+      { id: 'like', word: 'like', color: '#DC2626', textColor: '#ffffff', bgPill: '#FEE2E2', borderColor: '#DC2626', label: 'Red' },
+      { id: 'you', word: 'you', color: '#8B5A2B', textColor: '#ffffff', bgPill: '#F5EBE1', borderColor: '#8B5A2B', label: 'Brown' },
+      { id: 'do', word: 'do', color: '#EC4899', textColor: '#ffffff', bgPill: '#FCE7F3', borderColor: '#EC4899', label: 'Pink' },
+      { id: 'and', word: 'and', color: '#16A34A', textColor: '#ffffff', bgPill: '#DCFCE7', borderColor: '#16A34A', label: 'Green' }
+    ];
+
+    // All 22 exact sentences from the provided PDF pages (without numbering or headings)
+    const SENTENCES_DATA = [
+      "I like to skate.",
+      "I like to slide.",
+      "I like to dance.",
+      "I like to read.",
+      "I like to sleep.",
+      "My bag and my bottle.",
+      "The sun and the moon.",
+      "My box and my spoon.",
+      "The moon and the stars.",
+      "My school and my teacher.",
+      "The cat and the rat.",
+      "The fox and the grapes.",
+      "Do you like to skate?",
+      "Do you like to read?",
+      "Do you like to run?",
+      "Do you like to swing?",
+      "Do you like to slide?",
+      "I like my friend.",
+      "I like my dog.",
+      "I like my school.",
+      "I like my teacher.",
+      "I like my mom."
+    ];
+
+    // Grid layout designed to match the reference illustration while containing all 7 sight words
+    // Reference layout features: 
+    // Row 0: a b c d e f g h i
+    // Row 1: j k l m y n o p q (with 'my' at (1,3)-(1,4))
+    // Row 2: r s t u v w x y z
+    // Row 3: a n d b c d e f g (with 'and' at (3,0)-(3,2))
+    // Row 4: h i j k l m n o p
+    // Row 5: q r s t h e u v w (with 'the' at (5,3)-(5,5))
+    // Plus placements for: 'like', 'you', 'do', 'to'
+    const GRID_ROWS = 10;
+    const GRID_COLS = 9;
+
+    const BASE_GRID_LETTERS = [
+      ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'],
+      ['j', 'k', 'l', 'm', 'y', 'n', 'o', 'p', 'q'], // contains "my" at cols 3,4
+      ['r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'],
+      ['a', 'n', 'd', 'b', 'c', 'd', 'e', 'f', 'g'], // contains "and" at cols 0,1,2
+      ['h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p'],
+      ['q', 'r', 's', 't', 'h', 'e', 'u', 'v', 'w'], // contains "the" at cols 3,4,5
+      ['x', 'y', 'z', 'l', 'i', 'k', 'e', 'e', 'f'], // contains "like" at cols 3,4,5,6
+      ['g', 'h', 'i', 'j', 'y', 'o', 'u', 'n', 'o'], // contains "you" at cols 4,5,6
+      ['p', 'q', 'r', 'd', 'o', 't', 'o', 'w', 'x'], // contains "do" at cols 3,4 and "to" at cols 5,6
+      ['y', 'z', 'a', 'b', 'c', 'd', 'e', 'f', 'g']
+    ];
+
+    // Known target word coordinates in the grid: [{word, r, c, dir, len}]
+    const GRID_WORD_TARGETS = [
+      { word: 'my', cells: [[1,3], [1,4]], color: '#2563EB', textColor: '#ffffff' },
+      { word: 'and', cells: [[3,0], [3,1], [3,2]], color: '#16A34A', textColor: '#ffffff' },
+      { word: 'the', cells: [[5,3], [5,4], [5,5]], color: '#EAB308', textColor: '#422006' },
+      { word: 'like', cells: [[6,3], [6,4], [6,5], [6,6]], color: '#DC2626', textColor: '#ffffff' },
+      { word: 'you', cells: [[7,4], [7,5], [7,6]], color: '#8B5A2B', textColor: '#ffffff' },
+      { word: 'do', cells: [[8,3], [8,4]], color: '#EC4899', textColor: '#ffffff' },
+      { word: 'to', cells: [[8,5], [8,6]], color: '#8B5A2B', textColor: '#ffffff' }
+    ];
+
+    // State
+    let activeWord = SIGHT_WORDS[0]; // defaults to "my"
+    let foundGridWords = new Set(); // set of word ids found
+    let userSentenceBoxes = new Set(); // coordinates or hashes of circled words in sentences
+    let currentFilter = 'all';
+
+    // Drag selection tracking for grid
+    let isPointerDown = false;
+    let selectedCells = []; // array of {r, c, el}
+  </script>
+
+  <script>
+    function renderWordList() {
+      const container = document.getElementById('wordListContainer');
+      container.innerHTML = '';
+
+      SIGHT_WORDS.forEach((sw) => {
+        const isSelected = activeWord.id === sw.id;
+        const isFoundInGrid = foundGridWords.has(sw.id);
+
+        const card = document.createElement('div');
+        card.className = `p-2.5 sm:p-3 rounded-2xl flex items-center justify-between transition-all cursor-pointer border-2 ${
+          isSelected 
+            ? 'bg-amber-100 border-amber-500 shadow-md scale-[1.02]' 
+            : 'bg-white hover:bg-slate-50 border-slate-200'
+        }`;
+
+        card.onclick = () => {
+          selectActiveWord(sw);
+          AudioEngine.playClick();
+          SpeechEngine.speak(sw.word);
+        };
+
+        // Left section: Colored pencil graphic + Word
+        const leftWrap = document.createElement('div');
+        leftWrap.className = 'flex items-center gap-3';
+
+        // Colored Pencil Graphic
+        const pencilSvg = `
+          <div class="flex items-center drop-shadow-sm">
+            <div class="pencil-body px-2.5 text-[11px] font-black text-white" style="background-color: ${sw.color}; width: 64px;">
+              ${sw.word}
+            </div>
+            <div class="pencil-tip">
+              <div class="pencil-lead" style="border-left: 5px solid ${sw.color};"></div>
+            </div>
+          </div>
+        `;
+
+        leftWrap.innerHTML = `
+          ${pencilSvg}
+          <div class="flex flex-col">
+            <span class="text-base font-bold capitalize text-slate-800">${sw.word}</span>
+            <span class="text-[10px] text-slate-400 font-semibold">${sw.label} Crayon</span>
+          </div>
+        `;
+
+        // Right section: Audio speaker button + Found Checkmark badge
+        const rightWrap = document.createElement('div');
+        rightWrap.className = 'flex items-center gap-2';
+
+        const listenBtn = document.createElement('button');
+        listenBtn.className = 'w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 flex items-center justify-center text-sm shadow-inner transition';
+        listenBtn.title = `Listen to "${sw.word}"`;
+        listenBtn.innerHTML = '🔊';
+        listenBtn.onclick = (e) => {
+          e.stopPropagation();
+          AudioEngine.playClick();
+          SpeechEngine.speak(sw.word);
+        };
+
+        const statusBadge = document.createElement('div');
+        statusBadge.className = `w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+          isFoundInGrid 
+            ? 'bg-emerald-500 text-white shadow-sm' 
+            : 'bg-slate-100 text-slate-300 border border-slate-200'
+        }`;
+        statusBadge.innerHTML = isFoundInGrid ? '✓' : '';
+        statusBadge.title = isFoundInGrid ? 'Word found in grid!' : 'Not found in grid yet';
+
+        rightWrap.appendChild(listenBtn);
+        rightWrap.appendChild(statusBadge);
+
+        card.appendChild(leftWrap);
+        card.appendChild(rightWrap);
+        container.appendChild(card);
+      });
+
+      updateProgressCounters();
+    }
+
+    function selectActiveWord(sw) {
+      activeWord = sw;
+      const indicator = document.getElementById('activePencilIndicator');
+      const name = document.getElementById('activeWordName');
+      indicator.style.backgroundColor = sw.color;
+      name.textContent = sw.word;
+      renderWordList();
+    }
+
+    function updateProgressCounters() {
+      const gridProgress = document.getElementById('gridProgressText');
+      if (gridProgress) {
+        gridProgress.textContent = `${foundGridWords.size} / ${SIGHT_WORDS.length} Found in Grid`;
+      }
+    }
+  </script>
+
+  <script>
+    function renderWordGrid() {
+      const gridContainer = document.getElementById('wordGrid');
+      gridContainer.innerHTML = '';
+
+      for (let r = 0; r < GRID_ROWS; r++) {
+        for (let c = 0; c < GRID_COLS; c++) {
+          const letter = BASE_GRID_LETTERS[r][c];
+          const cell = document.createElement('div');
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          cell.dataset.letter = letter;
+          cell.className = 'grid-cell w-8 h-8 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center font-bold text-lg sm:text-2xl text-slate-800 bg-white border-2 border-slate-200 shadow-sm cursor-pointer select-none transition-all';
+          cell.textContent = letter;
+
+          // Pointer/Touch listeners for dragging selection
+          cell.addEventListener('pointerdown', (e) => {
+            isPointerDown = true;
+            cell.releasePointerCapture(e.pointerId); // allow pointerenter on other cells
+            selectedCells = [];
+            addCellToSelection(r, c, cell);
+            AudioEngine.playClick();
+          });
+
+          cell.addEventListener('pointerenter', () => {
+            if (isPointerDown) {
+              addCellToSelection(r, c, cell);
+            }
+          });
+
+          gridContainer.appendChild(cell);
+        }
+      }
+
+      // Render already found words with their rectangular box outlines
+      applyFoundGridHighlights();
+    }
+
+    // Window-level pointerup to finalize selection
+    window.addEventListener('pointerup', () => {
+      if (!isPointerDown) return;
+      isPointerDown = false;
+      verifySelectedWord();
+      clearTempSelection();
+    });
+
+    function addCellToSelection(r, c, cellEl) {
+      // Check if already in selection
+      if (selectedCells.some(item => item.r === r && item.c === c)) return;
+
+      // Allow horizontal, vertical, or starting fresh
+      if (selectedCells.length >= 1) {
+        const first = selectedCells[0];
+        const isHorizontal = r === first.r;
+        const isVertical = c === first.c;
+        if (!isHorizontal && !isVertical) return; // Keep selections in straight orthogonal lines
+      }
+
+      selectedCells.push({ r, c, el: cellEl });
+      cellEl.classList.add('selected-temp');
+      cellEl.style.backgroundColor = activeWord.bgPill;
+      cellEl.style.borderColor = activeWord.color;
+      cellEl.style.color = activeWord.color;
+    }
+
+    function clearTempSelection() {
+      selectedCells.forEach(({ el }) => {
+        el.classList.remove('selected-temp');
+      });
+      selectedCells = [];
+      applyFoundGridHighlights();
+    }
+
+    function verifySelectedWord() {
+      if (selectedCells.length < 2) return;
+
+      const formedWord = selectedCells.map(c => c.el.dataset.letter).join('').toLowerCase();
+      const reverseWord = formedWord.split('').reverse().join('');
+
+      // Check if matches any target word
+      const matchedTarget = GRID_WORD_TARGETS.find(target => {
+        if (target.word !== formedWord && target.word !== reverseWord) return false;
+        if (target.cells.length !== selectedCells.length) return false;
+
+        // Check exact coordinates
+        const matchesForward = target.cells.every((pos, idx) => pos[0] === selectedCells[idx].r && pos[1] === selectedCells[idx].c);
+        const matchesBackward = target.cells.slice().reverse().every((pos, idx) => pos[0] === selectedCells[idx].r && pos[1] === selectedCells[idx].c);
+        return matchesForward || matchesBackward;
+      });
+
+      if (matchedTarget) {
+        triggerWordCompleted(matchedTarget.word, matchedTarget.cells);
+      }
+    }
+
+    // Trigger completion celebration for a word
+    function triggerWordCompleted(wordId, cellCoordinates) {
+      const sw = SIGHT_WORDS.find(w => w.id === wordId);
+      if (!sw) return;
+
+      const isFirstTime = !foundGridWords.has(wordId);
+      foundGridWords.add(wordId);
+
+      // Sound & Confetti
+      AudioEngine.playWordSuccess();
+      launchConfetti();
+      showPraiseBanner(sw.word);
+
+      // Auto pronounce word aloud
+      SpeechEngine.speak(sw.word);
+
+      // Redraw grid & list badges
+      applyFoundGridHighlights();
+      renderWordList();
+
+      // If all found, trigger grand celebration
+      if (foundGridWords.size === SIGHT_WORDS.length && isFirstTime) {
+        setTimeout(() => {
+          AudioEngine.playCheerFanfare();
+          launchGrandConfetti();
+          showPraiseBanner("All 7 Sight Words Found!", "You are an amazing reading champion!");
+        }, 1200);
+      }
+    }
+
+    // Creates the grouping / combine rectangular box effect around the found word in the grid
+    function applyFoundGridHighlights() {
+      // Clear all styles first
+      const allCells = document.querySelectorAll('.grid-cell');
+      allCells.forEach(cell => {
+        cell.style.backgroundColor = '#ffffff';
+        cell.style.borderColor = '#e2e8f0';
+        cell.style.color = '#1e293b';
+        cell.style.borderRadius = '0.75rem'; // 12px default rounded-xl
+        cell.style.borderWidth = '2px';
+        cell.style.boxShadow = '0 1px 2px rgba(0,0,0,0.05)';
+      });
+
+      // Apply grouped pill effect for each found target word
+      GRID_WORD_TARGETS.forEach(target => {
+        if (!foundGridWords.has(target.word)) return;
+
+        const cells = target.cells;
+        const len = cells.length;
+        const isHorizontal = cells[0][0] === cells[1][0];
+
+        cells.forEach((pos, idx) => {
+          const el = document.querySelector(`.grid-cell[data-row="${pos[0]}"][data-col="${pos[1]}"]`);
+          if (!el) return;
+
+          el.style.backgroundColor = target.color;
+          el.style.color = target.textColor;
+          el.style.borderColor = target.color;
+          el.style.fontWeight = '800';
+          el.style.zIndex = '5';
+
+          // Grouping / combine rectangular box effect styling:
+          // Flatten adjacent borders to make the cells merge together like a single rounded pill!
+          if (isHorizontal) {
+            if (idx === 0) {
+              // Left end of horizontal rectangular pill
+              el.style.borderRadius = '9999px 0 0 9999px';
+              el.style.borderRightWidth = '0px';
+              el.style.boxShadow = '-3px 3px 6px rgba(0,0,0,0.15)';
+            } else if (idx === len - 1) {
+              // Right end of horizontal rectangular pill
+              el.style.borderRadius = '0 9999px 9999px 0';
+              el.style.borderLeftWidth = '0px';
+              el.style.boxShadow = '3px 3px 6px rgba(0,0,0,0.15)';
+            } else {
+              // Middle of pill
+              el.style.borderRadius = '0';
+              el.style.borderLeftWidth = '0px';
+              el.style.borderRightWidth = '0px';
+              el.style.boxShadow = '0 3px 6px rgba(0,0,0,0.15)';
+            }
+          } else {
+            // Vertical rectangular pill
+            if (idx === 0) {
+              el.style.borderRadius = '9999px 9999px 0 0';
+              el.style.borderBottomWidth = '0px';
+            } else if (idx === len - 1) {
+              el.style.borderRadius = '0 0 9999px 9999px';
+              el.style.borderTopWidth = '0px';
+            } else {
+              el.style.borderRadius = '0';
+              el.style.borderTopWidth = '0px';
+              el.style.borderBottomWidth = '0px';
+            }
+          }
+        });
+      });
+    }
+
+    // Hint feature
+    document.getElementById('hintBtn').addEventListener('click', () => {
+      // Find an unfound word or current active word
+      const target = GRID_WORD_TARGETS.find(t => t.word === activeWord.id) || 
+                     GRID_WORD_TARGETS.find(t => !foundGridWords.has(t.word));
+      
+      if (!target) {
+        showPraiseBanner("All Found!", "You have found all sight words in this grid!");
+        return;
+      }
+
+      // Flash the first letter cell
+      const firstPos = target.cells[0];
+      const el = document.querySelector(`.grid-cell[data-row="${firstPos[0]}"][data-col="${firstPos[1]}"]`);
+      if (el) {
+        AudioEngine.playClick();
+        el.classList.add('animate-bounce');
+        el.style.backgroundColor = '#fde047';
+        setTimeout(() => {
+          el.classList.remove('animate-bounce');
+          applyFoundGridHighlights();
+        }, 1200);
+      }
+    });
+  </script>
+
+  <script>
+    // Sentence Matching helper
+    function getSightWordMatchesInSentence(sentenceText) {
+      const lower = sentenceText.toLowerCase();
+      return SIGHT_WORDS.filter(sw => {
+        // Regex word boundary matching
+        const regex = new RegExp(`\\b${sw.word}\\b`, 'i');
+        return regex.test(lower);
+      });
+    }
+
+    // Parse sentence string into tokens (words + punctuation) so kids can tap any sight word
+    function tokenizeSentence(sentence) {
+      // Regex matches word characters or punctuation sequences
+      const tokens = [];
+      const regex = /([a-zA-Z0-9]+|[^\s\w]+|\s+)/g;
+      let match;
+      while ((match = regex.exec(sentence)) !== null) {
+        tokens.push(match[0]);
+      }
+      return tokens;
+    }
+
+    function renderSentences() {
+      const container = document.getElementById('sentencesList');
+      container.innerHTML = '';
+
+      let visibleCount = 0;
+
+      SENTENCES_DATA.forEach((sentenceText, sIdx) => {
+        const matchingWords = getSightWordMatchesInSentence(sentenceText);
+        
+        // Filter logic
+        if (currentFilter !== 'all') {
+          const hasFilteredWord = matchingWords.some(w => w.id === currentFilter);
+          if (!hasFilteredWord) return;
+        }
+
+        visibleCount++;
+
+        // Sentence Card
+        const card = document.createElement('div');
+        card.id = `sentence-card-${sIdx}`;
+        card.className = 'bg-white/95 rounded-2xl p-3.5 sm:p-4 border-2 border-amber-200/90 shadow-card flex items-start gap-3 justify-between transition-all hover:border-amber-300';
+
+        // Left Content (Sentence Words Container)
+        const leftBox = document.createElement('div');
+        leftBox.className = 'flex-1';
+
+        // Word tokens row
+        const wordsRow = document.createElement('div');
+        wordsRow.className = 'text-base sm:text-lg font-bold text-slate-800 flex flex-wrap items-center gap-y-1.5 leading-relaxed';
+        wordsRow.id = `sentence-text-${sIdx}`;
+
+        const tokens = tokenizeSentence(sentenceText);
+
+        tokens.forEach((token, tIdx) => {
+          const trimmedLower = token.trim().toLowerCase();
+          const matchedSightWord = SIGHT_WORDS.find(sw => sw.word === trimmedLower);
+
+          if (matchedSightWord) {
+            // Interactive sight word span
+            const wordSpan = document.createElement('span');
+            const tokenKey = `${sIdx}-${tIdx}-${matchedSightWord.id}`;
+            const isBoxed = userSentenceBoxes.has(tokenKey);
+
+            wordSpan.className = 'sentence-word font-black cursor-pointer';
+            wordSpan.dataset.sentenceIdx = sIdx;
+            wordSpan.dataset.tokenIdx = tIdx;
+            wordSpan.dataset.word = matchedSightWord.id;
+            wordSpan.textContent = token;
+
+            if (isBoxed) {
+              // Grouping / combine rectangular box effect in designated color
+              applyBoxEffectToSpan(wordSpan, matchedSightWord);
+            } else {
+              wordSpan.style.color = '#1e293b';
+              wordSpan.style.borderColor = 'transparent';
+              wordSpan.style.backgroundColor = 'transparent';
+            }
+
+            // Click sight word in sentence to toggle its rectangular box & hear it
+            wordSpan.onclick = (e) => {
+              e.stopPropagation();
+              toggleSentenceWordBox(tokenKey, wordSpan, matchedSightWord);
+            };
+
+            wordsRow.appendChild(wordSpan);
+          } else {
+            // Normal word or punctuation
+            const plainSpan = document.createElement('span');
+            plainSpan.className = 'px-0.5 text-slate-700';
+            plainSpan.textContent = token;
+            wordsRow.appendChild(plainSpan);
+          }
+        });
+
+        leftBox.appendChild(wordsRow);
+
+        // Right Content: Dedicated "Read Entire Sentence" speaker button
+        const rightBox = document.createElement('div');
+        rightBox.className = 'flex flex-col items-end gap-1.5 ml-2 shrink-0';
+
+        const readBtn = document.createElement('button');
+        readBtn.className = 'bg-amber-100 hover:bg-amber-200 active:scale-95 text-amber-900 font-extrabold text-xs px-3 py-1.5 rounded-xl border border-amber-300 shadow-sm flex items-center gap-1.5 transition';
+        readBtn.title = 'Read Entire Sentence';
+        readBtn.innerHTML = `<span>🔊</span> <span class="hidden sm:inline">Read Sentence</span>`;
+
+        readBtn.onclick = () => {
+          readSentenceAloud(sentenceText, sIdx, readBtn);
+        };
+
+        rightBox.appendChild(readBtn);
+
+        // Word badges found in this sentence
+        const badgeRow = document.createElement('div');
+        badgeRow.className = 'flex items-center gap-1 flex-wrap justify-end';
+        matchingWords.forEach(sw => {
+          const badge = document.createElement('span');
+          badge.className = 'text-[10px] font-black px-1.5 py-0.5 rounded-full text-white';
+          badge.style.backgroundColor = sw.color;
+          badge.textContent = sw.word;
+          badgeRow.appendChild(badge);
+        });
+        rightBox.appendChild(badgeRow);
+
+        card.appendChild(leftBox);
+        card.appendChild(rightBox);
+        container.appendChild(card);
+      });
+
+      document.getElementById('sentenceCountBadge').textContent = visibleCount;
+    }
+
+    // Toggle rectangular box / circle for a sight word in sentence
+    function toggleSentenceWordBox(key, spanEl, sw) {
+      if (userSentenceBoxes.has(key)) {
+        userSentenceBoxes.delete(key);
+        spanEl.style.backgroundColor = 'transparent';
+        spanEl.style.borderColor = 'transparent';
+        spanEl.style.color = '#1e293b';
+        spanEl.style.boxShadow = 'none';
+        AudioEngine.playClick();
+      } else {
+        userSentenceBoxes.add(key);
+        applyBoxEffectToSpan(spanEl, sw);
+        AudioEngine.playWordSuccess();
+        launchConfetti();
+        showPraiseBanner(sw.word, "Word Circled!");
+      }
+      SpeechEngine.speak(sw.word);
+    }
+
+    // Applies rectangular box / pill outline with color
+    function applyBoxEffectToSpan(spanEl, sw) {
+      spanEl.style.backgroundColor = sw.bgPill;
+      spanEl.style.color = sw.color;
+      spanEl.style.borderColor = sw.color;
+      spanEl.style.borderWidth = '2px';
+      spanEl.style.borderStyle = 'solid';
+      spanEl.style.borderRadius = '9999px';
+      spanEl.style.padding = '1px 8px';
+      spanEl.style.boxShadow = `0 2px 6px ${sw.color}33`;
+    }
+
+    // Read Entire Sentence with Karaokee Highlight
+    function readSentenceAloud(sentence, sIdx, btnEl) {
+      AudioEngine.playClick();
+      const originalBtnHTML = btnEl.innerHTML;
+      btnEl.innerHTML = `<span>🔊</span> <span class="text-amber-700 animate-pulse">Reading...</span>`;
+      btnEl.disabled = true;
+
+      const sentenceEl = document.getElementById(`sentence-text-${sIdx}`);
+      const wordElements = sentenceEl.querySelectorAll('span');
+
+      SpeechEngine.speak(
+        sentence,
+        (charIndex) => {
+          // Highlight active word token in sentence
+          let currentPos = 0;
+          wordElements.forEach(span => {
+            const spanLen = span.textContent.length;
+            if (charIndex >= currentPos && charIndex < currentPos + spanLen) {
+              span.classList.add('karaoke-active');
+            } else {
+              span.classList.remove('karaoke-active');
+            }
+            currentPos += spanLen;
+          });
+        },
+        () => {
+          // When finished speaking
+          btnEl.innerHTML = originalBtnHTML;
+          btnEl.disabled = false;
+          wordElements.forEach(span => span.classList.remove('karaoke-active'));
+        }
+      );
+    }
+
+    // Filter Tabs Handler
+    document.querySelectorAll('.filter-tab').forEach(button => {
+      button.addEventListener('click', () => {
+        AudioEngine.playClick();
+        document.querySelectorAll('.filter-tab').forEach(b => {
+          b.classList.remove('bg-amber-600', 'text-white');
+          b.classList.add('bg-white');
+        });
+        button.classList.remove('bg-white');
+        button.classList.add('bg-amber-600', 'text-white');
+
+        currentFilter = button.dataset.filter;
+        renderSentences();
+      });
+    });
+
+    // Auto-Circle All Matching Words in Sentences feature
+    document.getElementById('circleAllMatchingBtn').addEventListener('click', () => {
+      AudioEngine.playWordSuccess();
+      launchConfetti();
+
+      SENTENCES_DATA.forEach((sentenceText, sIdx) => {
+        const tokens = tokenizeSentence(sentenceText);
+        tokens.forEach((token, tIdx) => {
+          const lower = token.trim().toLowerCase();
+          const sw = SIGHT_WORDS.find(w => w.word === lower);
+          if (sw) {
+            userSentenceBoxes.add(`${sIdx}-${tIdx}-${sw.id}`);
+          }
+        });
+      });
+
+      renderSentences();
+      showPraiseBanner("All Words Circled!", "You circled every sight word in the stories!");
+    });
+  </script>
+
+  <script>
+    // Confetti burst for word completion
+    function launchConfetti() {
+      if (typeof confetti !== 'function') return;
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.65 },
+        colors: ['#2563EB', '#EAB308', '#8B5A2B', '#DC2626', '#EC4899', '#16A34A', '#FBBF24']
+      });
+    }
+
+    // Grand celebration confetti for completing game
+    function launchGrandConfetti() {
+      if (typeof confetti !== 'function') return;
+      const duration = 2.5 * 1000;
+      const end = Date.now() + duration;
+
+      (function frame() {
+        confetti({
+          particleCount: 7,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: ['#2563EB', '#EAB308', '#8B5A2B', '#DC2626', '#EC4899', '#16A34A']
+        });
+        confetti({
+          particleCount: 7,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: ['#2563EB', '#EAB308', '#8B5A2B', '#DC2626', '#EC4899', '#16A34A']
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      }());
+    }
+
+    // Temporary Praise Banner Popup
+    let praiseTimeout = null;
+    function showPraiseBanner(mainText, subText = "You Found It!") {
+      const banner = document.getElementById('praiseBanner');
+      const txt = document.getElementById('praiseText');
+      const sub = document.getElementById('praiseSubtext');
+
+      txt.textContent = mainText;
+      sub.textContent = subText;
+
+      banner.classList.remove('hidden');
+      banner.classList.remove('praise-banner');
+      void banner.offsetWidth; // trigger reflow
+      banner.classList.add('praise-banner');
+
+      clearTimeout(praiseTimeout);
+      praiseTimeout = setTimeout(() => {
+        banner.classList.add('hidden');
+      }, 1400);
+    }
+
+    // Header Controls: Sound FX Toggle
+    const soundFxBtn = document.getElementById('soundFxBtn');
+    const fxStatus = document.getElementById('fxStatus');
+    soundFxBtn.addEventListener('click', () => {
+      AudioEngine.enabled = !AudioEngine.enabled;
+      fxStatus.textContent = AudioEngine.enabled ? 'ON' : 'OFF';
+      AudioEngine.playClick();
+    });
+
+    // Reset Progress Button
+    document.getElementById('resetAllBtn').addEventListener('click', () => {
+      AudioEngine.playClick();
+      foundGridWords.clear();
+      userSentenceBoxes.clear();
+      renderWordGrid();
+      renderWordList();
+      renderSentences();
+      showPraiseBanner("Fresh Start!", "Ready to find and circle again!");
+    });
+
+    // Listen to active word button
+    document.getElementById('pronounceActiveWord').addEventListener('click', (e) => {
+      e.stopPropagation();
+      AudioEngine.playClick();
+      SpeechEngine.speak(activeWord.word);
+    });
+  </script>
+
+  <script>
+    // Initialize everything on DOM Load
+    window.addEventListener('DOMContentLoaded', () => {
+      renderWordList();
+      renderWordGrid();
+      renderSentences();
+
+      // Pre-select default "my"
+      selectActiveWord(SIGHT_WORDS[0]);
+    });
+  </script>
 </body>
 </html>
